@@ -2,7 +2,7 @@
 
 ## Descripción del Proyecto
 
-## Ejecución Local - Guía Rápida
+## Ejecución Local
 
 ### **Requisitos Previos**
 - **Node.js** 18.x o superior
@@ -21,10 +21,8 @@ pnpm run dev
 
 ### **Scripts Disponibles**
 ```bash
-npm run dev      # Servidor de desarrollo (recomendado)
-npm run build    # Build para producción
-npm run preview  # Vista previa de la build
-npm run lint     # Ejecutar linter
+pnpm run dev      
+pnpm run build    
 ```
 
 
