@@ -9,10 +9,12 @@ export interface ChatHistoryItem {
   id: number;
   message: string;
   response: string;
-  type: 'laboral' | 'civil' | null;
+  type: QueryType;
   status: 'activa' | 'resuelta' | null;
   createdAt: string;
 }
+
+export type QueryType = 'laboral' | 'civil' | 'penal' | 'administrativo' | 'mercantil' | 'fiscal' | 'familia' | 'inmobiliario' | 'extranjeria' | 'digital' | 'constitucional' | 'procesal' | 'proteccion-datos' | null;
 
 export interface User {
   id: number;

@@ -47,6 +47,7 @@ export default function RegisterForm() {
       }
 
       localStorage.setItem("user", JSON.stringify(result.user))
+      localStorage.setItem("_welcome", "true")
       window.dispatchEvent(new Event("user-changed"))
       router.push("/")
       router.refresh()

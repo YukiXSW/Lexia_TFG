@@ -29,7 +29,7 @@ async function initDB() {
       user_id INT NOT NULL,
       message TEXT NOT NULL,
       response TEXT NOT NULL,
-      type VARCHAR(20) DEFAULT NULL,
+      type VARCHAR(30) DEFAULT NULL,
       status VARCHAR(20) DEFAULT 'activa',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -37,7 +37,7 @@ async function initDB() {
   `);
 
   try {
-    await initConn.query(`ALTER TABLE chats ADD COLUMN type VARCHAR(20) DEFAULT NULL AFTER response`);
+    await initConn.query(`ALTER TABLE chats ADD COLUMN type VARCHAR(30) DEFAULT NULL AFTER response`);
   } catch { /* column already exists */ }
 
   try {

@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import ThemeToggle from './ThemeToggle';
 import { useEffect, useRef, useState } from 'react';
+import lexiaLogo from '@/app/images/Lexialogo.png';
 
 export default function Header() {
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
@@ -45,9 +47,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/consulta" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-            L
-          </div>
+          <Image src={lexiaLogo} alt="Lexia" className="w-8 h-8 rounded-lg" />
           <span className="text-xl font-bold text-zinc-900 dark:text-white">Lexia</span>
         </Link>
 

@@ -11,8 +11,14 @@ interface Message {
 
 function getGuestQueries(): number {
   if (typeof document === 'undefined') return 0;
-  const match = document.cookie.match(/(?:^|;\s*)guest_queries=(\d+)/);
-  return match ? parseInt(match[1]) : 0;
+  const match = document.cookie.match(/(?:^|;\s*)guest_queries=([^;]+)/);
+  if (!match) return 0;
+  const parts = match[1].split('_');
+  if (parts.length !== 2) return 0;
+  const [cookieDate, countStr] = parts;
+  const today = new Date().toISOString().slice(0, 10);
+  if (cookieDate !== today) return 0;
+  return parseInt(countStr) || 0;
 }
 
 const GUEST_LIMIT = 5;
@@ -75,8 +81,6 @@ export default function ChatInterface() {
     '¿Qué derechos tengo como inquilino?',
     '¿Cuánto tiempo prescribe una deuda?',
     '¿Cómo solicitar el divorcio de mutuo acuerdo?',
-    '¿Qué es el RGPD y cómo afecta a mi empresa?',
-    '¿Cuáles son los requisitos para aceptar una herencia?',
   ];
 
   const sendMessage = async (e?: React.FormEvent, overrideText?: string) => {
@@ -155,6 +159,10 @@ export default function ChatInterface() {
           }
         }
       }
+
+      const newCount = getGuestQueries();
+      setQueriesUsed(newCount);
+      if (!user && newCount >= GUEST_LIMIT) setBlocked(true);
     } catch (err: any) {
       if (err?.name === 'AbortError') return;
       setMessages(prev =>
@@ -180,8 +188,8 @@ export default function ChatInterface() {
   const queriesLeft = GUEST_LIMIT - queriesUsed;
 
   return (
-    <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4">
-      <div className="flex-1 overflow-y-auto py-6 space-y-4">
+    <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full min-h-0">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 min-h-0">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center py-20">
             <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center mb-4">
@@ -230,28 +238,28 @@ export default function ChatInterface() {
         <div ref={messagesEndRef} />
       </div>
 
-      {!isAtLimit && (
-        <div className="px-1 mb-2">
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">
-            Preguntas frecuentes
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {faqs.map(q => (
-              <button
-                key={q}
-                type="button"
-                onClick={() => sendMessage(undefined, q)}
-                disabled={loading}
-                className="text-xs px-3 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-800 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:border-indigo-700 dark:hover:text-indigo-400 disabled:opacity-50 transition-colors"
-              >
-                {q}
-              </button>
-            ))}
+      <div className="shrink-0 border-t border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm px-4 py-3">
+        {!isAtLimit && (
+          <div className="mb-3">
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">
+              Preguntas frecuentes
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {faqs.map(q => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => sendMessage(undefined, q)}
+                  disabled={loading}
+                  className="text-xs px-3 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-800 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:border-indigo-700 dark:hover:text-indigo-400 disabled:opacity-50 transition-colors"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="border-t border-zinc-200 dark:border-zinc-800 py-4">
         <form onSubmit={sendMessage} className="flex gap-2">
           <input
             type="text"
@@ -285,7 +293,7 @@ export default function ChatInterface() {
         </form>
 
         {isAtLimit && (
-          <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
+          <div className="mt-3 p-4 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
             <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
               Has alcanzado el límite de {GUEST_LIMIT} consultas gratuitas.
             </p>

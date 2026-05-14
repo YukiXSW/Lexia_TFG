@@ -47,7 +47,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (!session) {
-      const guestQueries = parseInt(req.cookies.get('guest_queries')?.value || '0');
+      const raw = req.cookies.get('guest_queries')?.value || '';
+      let guestQueries = 0;
+      if (raw.includes('_')) {
+        const [cookieDate, countStr] = raw.split('_');
+        const today = new Date().toISOString().slice(0, 10);
+        if (cookieDate === today) {
+          guestQueries = parseInt(countStr) || 0;
+        }
+      }
       if (guestQueries >= GUEST_LIMIT) {
         log({ ip, userId: null, sessionId: sid, action: 'blocked', message, reason: 'Límite de consultas de invitado alcanzado' });
         return NextResponse.json(
@@ -101,8 +109,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (!session) {
-      const current = parseInt(req.cookies.get('guest_queries')?.value || '0');
-      headers.append('Set-Cookie', `guest_queries=${current + 1}; Path=/; Max-Age=${31536000}; SameSite=Lax`);
+      const raw = req.cookies.get('guest_queries')?.value || '';
+      let current = 0;
+      if (raw.includes('_')) {
+        const [cookieDate, countStr] = raw.split('_');
+        const today = new Date().toISOString().slice(0, 10);
+        if (cookieDate === today) {
+          current = parseInt(countStr) || 0;
+        }
+      }
+      const today = new Date().toISOString().slice(0, 10);
+      headers.append('Set-Cookie', `guest_queries=${today}_${current + 1}; Path=/; Max-Age=86400; SameSite=Lax`);
     }
 
     return new Response(stream, { headers });

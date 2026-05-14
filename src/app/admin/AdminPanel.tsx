@@ -8,12 +8,41 @@ interface User {
   email: string;
   role: 'user' | 'admin';
   createdAt: string;
+  totalChats: number;
+  lastType: string | null;
+  lastStatus: string | null;
 }
 
 interface Props {
   users: User[];
   totalChats: number;
 }
+
+const typeLabels: Record<string, string> = {
+  laboral: 'Laboral',
+  civil: 'Civil',
+  penal: 'Penal',
+  administrativo: 'Administrativo',
+  mercantil: 'Mercantil',
+  fiscal: 'Fiscal',
+  familia: 'Familia',
+  inmobiliario: 'Inmobiliario',
+  extranjeria: 'Extranjería',
+  digital: 'Digital',
+  constitucional: 'Constitucional',
+  procesal: 'Procesal',
+  'proteccion-datos': 'Protección de Datos',
+};
+
+const statusStyles: Record<string, string> = {
+  activa: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  resuelta: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400',
+};
+
+const statusLabels: Record<string, string> = {
+  activa: 'Activa',
+  resuelta: 'Resuelta',
+};
 
 export default function AdminPanel({ users: initialUsers, totalChats }: Props) {
   const [users, setUsers] = useState(initialUsers);
@@ -91,6 +120,9 @@ export default function AdminPanel({ users: initialUsers, totalChats }: Props) {
                 <th className="text-left px-5 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Nombre</th>
                 <th className="text-left px-5 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Email</th>
                 <th className="text-left px-5 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Rol</th>
+                <th className="text-center px-3 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Consultas</th>
+                <th className="text-left px-3 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Tipo</th>
+                <th className="text-left px-3 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Estado</th>
                 <th className="text-left px-5 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Registro</th>
                 <th className="text-right px-5 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Acciones</th>
               </tr>
@@ -108,6 +140,27 @@ export default function AdminPanel({ users: initialUsers, totalChats }: Props) {
                     }`}>
                       {user.role}
                     </span>
+                  </td>
+                  <td className="px-3 py-3 text-center text-zinc-900 dark:text-zinc-100 font-medium text-sm">
+                    {user.totalChats}
+                  </td>
+                  <td className="px-3 py-3">
+                    {user.lastType ? (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
+                        {typeLabels[user.lastType] || user.lastType}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-zinc-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-3">
+                    {user.lastStatus ? (
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[user.lastStatus] || ''}`}>
+                        {statusLabels[user.lastStatus] || user.lastStatus}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-zinc-400">—</span>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400 text-xs">
                     {new Date(user.createdAt).toLocaleDateString('es-ES')}
