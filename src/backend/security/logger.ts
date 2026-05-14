@@ -21,7 +21,7 @@ export function log(entry: LogEntry): void {
   logBuffer.push(full);
 
   if (process.env.NODE_ENV === 'development') {
-    const prefix = full.action === 'blocked' ? '🔒 BLOQUEADO' : '📝';
+    const prefix = full.action === 'blocked' ? '[BLOQUEADO]' : '[INFO]';
     console.log(`${prefix} [${full.timestamp}] ${full.action} | IP: ${full.ip} | User: ${full.userId ?? 'guest'}`);
     if (full.reason) console.log(`  Razón: ${full.reason}`);
   }
