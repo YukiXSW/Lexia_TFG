@@ -12,6 +12,12 @@ const CATEGORY_LABELS: Record<string, string> = {
   laboral: 'Laboral',
   procesal: 'Procesal',
   administrativo: 'Administrativo',
+  mercantil: 'Mercantil',
+  fiscal: 'Fiscal',
+  familia: 'Familia',
+  inmobiliario: 'Inmobiliario',
+  extranjeria: 'Extranjería',
+  digital: 'Digital',
   'proteccion-datos': 'Protección de Datos',
 };
 
@@ -64,7 +70,7 @@ export function classifyQuery(query: string, legalResults: LegalDocument[]): { t
       categoryCount[doc.category] = (categoryCount[doc.category] || 0) + 1;
     }
     const topCategory = Object.entries(categoryCount).sort((a, b) => b[1] - a[1])[0]?.[0];
-    type = topCategory ? (CATEGORY_LABELS[topCategory] || topCategory) : null;
+    type = topCategory || null;
   }
 
   const lower = query.toLowerCase();
