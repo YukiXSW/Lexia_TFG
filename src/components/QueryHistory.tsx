@@ -1,11 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import type { ChatHistoryItem } from '@/types';
 
 const typeLabels: Record<string, string> = {
   laboral: 'Laboral',
   civil: 'Civil',
+  penal: 'Penal',
+  administrativo: 'Administrativo',
+  mercantil: 'Mercantil',
+  fiscal: 'Fiscal',
+  familia: 'Familia',
+  inmobiliario: 'Inmobiliario',
+  extranjeria: 'Extranjería',
+  digital: 'Digital',
+  constitucional: 'Constitucional',
+  procesal: 'Procesal',
+  'proteccion-datos': 'Protección de Datos',
 };
 
 const statusStyles: Record<string, string> = {
@@ -129,44 +140,58 @@ export default function QueryHistory() {
           </button>
         </div>
       </div>
-      <div className="space-y-3">
-        {history.map(item => (
-          <div
-            key={item.id}
-            className="border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden"
-          >
-            <button
-              onClick={() => setExpanded(expanded === item.id ? null : item.id)}
-              className="w-full text-left px-4 py-3 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                {item.type && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
-                    {typeLabels[item.type] || item.type}
-                  </span>
-                )}
-                {item.status && (
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[item.status] || ''}`}>
-                    {statusLabels[item.status] || item.status}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
-                {item.message}
-              </p>
-              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                {new Date(item.createdAt).toLocaleString('es-ES')}
-              </p>
-            </button>
-            {expanded === item.id && (
-              <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-700">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap">
-                  {item.response}
-                </p>
-              </div>
-            )}
-          </div>
-        ))}
+      <div className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-zinc-50 dark:bg-zinc-800">
+              <th className="text-left px-4 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Consulta</th>
+              <th className="text-left px-3 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Tipo</th>
+              <th className="text-left px-3 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Estado</th>
+              <th className="text-left px-4 py-3 text-zinc-500 dark:text-zinc-400 font-medium">Fecha</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
+            {history.map(item => {
+              const isExpanded = expanded === item.id;
+              return (
+                <Fragment key={item.id}>
+                  <tr className="group hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors cursor-pointer" onClick={() => setExpanded(isExpanded ? null : item.id)}>
+                    <td className="px-4 py-3 text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate max-w-xs">
+                      <span className="flex items-center gap-2">
+                        <svg className={`w-4 h-4 text-zinc-400 shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        {item.message}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
+                        {item.type ? (typeLabels[item.type] || item.type) : '—'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${item.status ? (statusStyles[item.status] || '') : ''}`}>
+                        {item.status ? (statusLabels[item.status] || item.status) : '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-zinc-400 dark:text-zinc-500 whitespace-nowrap">
+                      {new Date(item.createdAt).toLocaleString('es-ES')}
+                    </td>
+                  </tr>
+                  {isExpanded && (
+                    <tr className="bg-zinc-50 dark:bg-zinc-800/30">
+                      <td colSpan={4} className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-700">
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap">
+                          {item.response}
+                        </p>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
