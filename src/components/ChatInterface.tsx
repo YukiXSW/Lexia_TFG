@@ -27,9 +27,18 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<{ id: number } | null>(null);
-  const [blocked, setBlocked] = useState(false);
-  const [queriesUsed, setQueriesUsed] = useState(0);
+  const [user, setUser] = useState<{ id: number } | null>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('user');
+      return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  });
+  const guestCount = typeof window !== 'undefined' ? getGuestQueries() : 0;
+  const [blocked, setBlocked] = useState(() =>
+    user ? false : guestCount >= GUEST_LIMIT
+  );
+  const [queriesUsed, setQueriesUsed] = useState(guestCount);
   const [sessionId] = useState(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('sessionId');
@@ -47,14 +56,6 @@ export default function ChatInterface() {
     const stored = localStorage.getItem('user');
     const guestCount = getGuestQueries();
     setQueriesUsed(guestCount);
-
-    const saved = localStorage.getItem('chatMessages');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setMessages(parsed);
-      } catch { /* ignore */ }
-    }
 
     if (stored) {
       setUser(JSON.parse(stored));
