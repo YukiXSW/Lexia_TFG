@@ -32,11 +32,20 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    if (!(await checkAdmin())) {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
     const { userId } = await req.json();
+
+    if (userId === session.id) {
+      return NextResponse.json(
+        { error: 'No puedes eliminar tu propia cuenta' },
+        { status: 400 }
+      );
+    }
+
     await query('DELETE FROM users WHERE id = ?', [userId]);
     return NextResponse.json({ success: true });
   } catch (error) {

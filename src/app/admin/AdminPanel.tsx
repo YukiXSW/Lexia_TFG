@@ -13,9 +13,22 @@ interface User {
   lastStatus: string | null;
 }
 
+interface Chat {
+  id: number;
+  user_id: number;
+  userName: string;
+  userEmail: string;
+  message: string;
+  response: string;
+  type: string | null;
+  status: string | null;
+  createdAt: string;
+}
+
 interface Props {
   users: User[];
   totalChats: number;
+  currentUserId: number;
 }
 
 const typeLabels: Record<string, string> = {
@@ -44,8 +57,11 @@ const statusLabels: Record<string, string> = {
   resuelta: 'Resuelta',
 };
 
-export default function AdminPanel({ users: initialUsers, totalChats }: Props) {
+export default function AdminPanel({ users: initialUsers, totalChats, currentUserId }: Props) {
   const [users, setUsers] = useState(initialUsers);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [chats, setChats] = useState<Chat[] | null>(null);
+  const [loadingChats, setLoadingChats] = useState(false);
 
   const toggleRole = async (userId: number, currentRole: string) => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
@@ -67,7 +83,33 @@ export default function AdminPanel({ users: initialUsers, totalChats }: Props) {
     }
   };
 
+  const viewChats = async (user: User) => {
+    setSelectedUser(user);
+    setLoadingChats(true);
+    setChats(null);
+
+    try {
+      const res = await fetch(`/api/admin/chats?userId=${user.id}`);
+      if (res.ok) {
+        setChats(await res.json());
+      }
+    } catch {
+      // error
+    } finally {
+      setLoadingChats(false);
+    }
+  };
+
+  const closeChats = () => {
+    setSelectedUser(null);
+    setChats(null);
+  };
+
   const deleteUser = async (userId: number) => {
+    if (userId === currentUserId) {
+      alert('No puedes eliminar tu propia cuenta.');
+      return;
+    }
     if (!confirm('¿Eliminar este usuario y todas sus consultas?')) return;
 
     try {
@@ -86,6 +128,7 @@ export default function AdminPanel({ users: initialUsers, totalChats }: Props) {
   };
 
   return (
+    <>
     <section className="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Panel de Administración</h1>
@@ -167,17 +210,29 @@ export default function AdminPanel({ users: initialUsers, totalChats }: Props) {
                   </td>
                   <td className="px-5 py-3 text-right">
                     <button
+                      onClick={() => viewChats(user)}
+                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline mr-3"
+                    >
+                      Consultas
+                    </button>
+                    <button
                       onClick={() => toggleRole(user.id, user.role)}
                       className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline mr-3"
                     >
                       Cambiar rol
                     </button>
-                    <button
-                      onClick={() => deleteUser(user.id)}
-                      className="text-xs text-red-500 hover:underline"
-                    >
-                      Eliminar
-                    </button>
+                    {user.id === currentUserId ? (
+                      <span className="text-xs text-zinc-400 dark:text-zinc-500 cursor-not-allowed" title="No puedes eliminar tu propia cuenta">
+                        Eliminar
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => deleteUser(user.id)}
+                        className="text-xs text-red-500 hover:underline"
+                      >
+                        Eliminar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -186,5 +241,55 @@ export default function AdminPanel({ users: initialUsers, totalChats }: Props) {
         </div>
       </div>
     </section>
+
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeChats}>
+          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-xl max-w-3xl w-full max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Consultas de {selectedUser.name}</h2>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">{selectedUser.email}</p>
+              </div>
+              <button onClick={closeChats} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 text-xl leading-none">&times;</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {loadingChats && (
+                <p className="text-zinc-500 text-center">Cargando consultas...</p>
+              )}
+              {chats && chats.length === 0 && (
+                <p className="text-zinc-500 text-center">Este usuario no tiene consultas.</p>
+              )}
+              {chats && chats.map(chat => (
+                <div key={chat.id} className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+                  <div className="px-4 py-2 bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-700 flex items-center gap-2 text-xs text-zinc-500">
+                    {chat.type && (
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
+                        {typeLabels[chat.type] || chat.type}
+                      </span>
+                    )}
+                    {chat.status && (
+                      <span className={`px-2 py-0.5 rounded-full ${statusStyles[chat.status] || ''}`}>
+                        {statusLabels[chat.status] || chat.status}
+                      </span>
+                    )}
+                    <span className="ml-auto">{new Date(chat.createdAt).toLocaleString('es-ES')}</span>
+                  </div>
+                  <div className="px-4 py-3 space-y-3">
+                    <div>
+                      <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Usuario:</p>
+                      <p className="text-sm text-zinc-900 dark:text-zinc-100 whitespace-pre-wrap">{chat.message}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1">Lexia:</p>
+                      <p className="text-sm text-zinc-900 dark:text-zinc-100 whitespace-pre-wrap">{chat.response}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

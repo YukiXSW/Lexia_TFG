@@ -29,5 +29,5 @@ export default async function AdminPage() {
   const totalChats = (await query('SELECT COUNT(*) as total FROM chats')) as any[];
   const totalChatsCount = totalChats[0]?.total || 0;
 
-  return <AdminPanel users={users} totalChats={totalChatsCount} />;
+  return <AdminPanel users={users} totalChats={totalChatsCount} currentUserId={session.id} />;
 }
